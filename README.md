@@ -2,6 +2,25 @@
 Some useful but not well documented stuff on Demisto aka Cortex XSOAR by Palo Alto Networks
 
 ## Table of Contents
+- [Demisto - Useful documentation](#demisto---useful-documentation)
+  - [Table of Contents](#table-of-contents)
+- [File System, Health Monitoring, and Logs](#file-system-health-monitoring-and-logs)
+  - [Primary Directory Locations](#primary-directory-locations)
+    - [/var/lib/demisto/](#varlibdemisto)
+    - [/usr/local/demisto/](#usrlocaldemisto)
+  - [Cortex XSOAR Directory Locations for Key Assets](#cortex-xsoar-directory-locations-for-key-assets)
+  - [Health Monitoring](#health-monitoring)
+  - [Cortex XSOAR Troubleshooting Logs](#cortex-xsoar-troubleshooting-logs)
+    - [Debug](#debug)
+    - [Info](#info)
+    - [Warning](#warning)
+  - [Log File Downloads](#log-file-downloads)
+    - [1. Click Download logs.](#1-click-download-logs)
+    - [2. Save the logs-bundle file and/or locate saved file.](#2-save-the-logs-bundle-file-andor-locate-saved-file)
+    - [3. Extract and review logs.](#3-extract-and-review-logs)
+  - [Files in the Logs Bundle](#files-in-the-logs-bundle)
+    - [Running Log Files](#running-log-files)
+    - [Status Output Logs](#status-output-logs)
 
 
 # File System, Health Monitoring, and Logs
