@@ -10,7 +10,7 @@ Some useful but not well documented stuff on Demisto aka Cortex XSOAR by Palo Al
     - [/usr/local/demisto/](#usrlocaldemisto)
   - [Cortex XSOAR Directory Locations for Key Assets](#cortex-xsoar-directory-locations-for-key-assets)
   - [Health Monitoring](#health-monitoring)
-- [Cortex XSOAR Troubleshooting Logs](#cortex-xsoar-troubleshooting-logs)
+  - [Cortex XSOAR Troubleshooting Logs](#cortex-xsoar-troubleshooting-logs)
     - [Debug](#debug)
     - [Info](#info)
     - [Warning](#warning)
@@ -41,6 +41,24 @@ Some useful but not well documented stuff on Demisto aka Cortex XSOAR by Palo Al
     - [Production Server](#production-server)
   - [Dev-Prod Deployment Implementation](#dev-prod-deployment-implementation)
   - [Dev-Prod Deployment and Configuration](#dev-prod-deployment-and-configuration)
+- [Backup and Restore](#backup-and-restore)
+  - [Backup and Disaster Recovery Options](#backup-and-disaster-recovery-options)
+      - [Automated Backups](#automated-backups)
+      - [Live Backup](#live-backup)
+    - [How to Configure Automated Backups](#how-to-configure-automated-backups)
+      - [OFF/ON](#offon)
+      - [Backups Directory](#backups-directory)
+      - [Backup Time](#backup-time)
+      - [Retention Settings](#retention-settings)
+    - [How to Use an Automated Backup File to Roll Back the System](#how-to-use-an-automated-backup-file-to-roll-back-the-system)
+  - [Live Backup Solution](#live-backup-solution)
+      - [Active primary server](#active-primary-server)
+      - [Standby server](#standby-server)
+      - [Failover process](#failover-process)
+  - [How to Deploy Live Backup: Configure the Primary Server](#how-to-deploy-live-backup-configure-the-primary-server)
+  - [How to Deploy Live Backup: Configure the Live Backup Server](#how-to-deploy-live-backup-configure-the-live-backup-server)
+  - [Use of Live Backup Failover Capability](#use-of-live-backup-failover-capability)
+- [Official Documentation](#official-documentation)
 
 # File System, Health Monitoring, and Logs
 - Identify the file structure that Cortex XSOAR uses for software and data
@@ -77,7 +95,7 @@ The color for disk, CPU, and memory changes from green to yellow at 51% used and
 - Yellow indicates a condition to monitor relative to current performance and anticipated growth in system use and data storage.
 - Red indicates that remediation steps should be assessed, especially with regard to disk use.
 
-# Cortex XSOAR Troubleshooting Logs
+## Cortex XSOAR Troubleshooting Logs
 You can use the Cortex XSOAR web interface to set the level of detail that the platform writes to its application log files. You also can use the web interface to download a copy of the log files. 
 
 Log controls are located at the top of the **Settings > About > Troubleshooting** page.
@@ -343,3 +361,243 @@ Review the notification in the **Discard server changes** dialog box, which list
 5. Verify your results
 
 Finally, review the available content and confirm changes in functionality, such as the inability to edit content by use of the dev server.
+
+
+# Backup and Restore
+
+This section describes Backup and Restore in the Cortex XSOAR environment.
+
+- Describe and configure the basic Automated Backups feature
+- Identify the directories excluded by Automated Backups that can be backed up manually or by use of Live Backup
+- Explain how Live Backup supports availability and disaster-recovery needs
+- Configure an instance of Live Backup
+- Describe the restoration process
+
+
+## Backup and Disaster Recovery Options
+Cortex XSOAR provides two backup-related solutions for replication and storage of system data and settings: Automated Backups and Live Backup. Both solutions can be used, and in most cases should be used, simultaneously.
+
+#### Automated Backups
+
+- Function
+  - Makes daily copies of incidents, playbooks, scripts, and user-defined configurations 
+  - Does not duplicate artifacts and attachments
+
+- Configuration
+    - Download the required packages and transfer them to a local instance of a YUM software repository that you configure on the target server.
+
+- Primary Use Case
+  - To preserve data and to enable on-demand system rollback by use of basic features
+
+- Consideration
+    - Rollback requires use of the Linux command line to stop the application service and to replace the database files from a selected archive.
+
+
+#### Live Backup 
+- Function
+  - Mirrors data in real time from the primary server to a standby server
+  - Includes replication of artifacts and attachments
+
+- Configuration
+  - The web interface provides partial configuration capability, after you apply a custom server configuration.
+  - The initial setup of the standby server requires manual database replication via the Linux command line. 
+  
+- Primary Use Case
+  - To enable manual failover in response to a platform failure or environmental outage
+  
+- Considerations
+  - A second server and installation of the Cortex XSOAR Server software are required.
+  - Failover requires administrator use of the web interface or the Linux command line and the manual redirection of user connections.
+
+
+### How to Configure Automated Backups
+To view and/or edit the Automated Backups configuration, go to Settings > Advanced > Backups. Any change you make to a parameter displayed in a text box is saved immediately after you navigate from the edited parameter.
+
+#### OFF/ON
+  
+Artifacts and Attachments repositories are typically large. Duplication of them on the host file system would rapidly consume disk space. Palo Alto Networks recommends the use of your standard backup tools for HA-DR recovery of the following directories: **/var/lib/demisto/artifacts/** and **/var/lib/attachments/**. Also, consider deployment of a Live Backup solution.
+
+
+#### Backups Directory
+
+Palo Alto Networks recommends the additional use of your standard backup tools for HA-DR recovery of the backups directory (default: **/var/lib/demisto/backup/**).
+
+
+#### Backup Time
+
+Click the current time value to display a drop-down configuration tool. Change the time and click **Save**.
+
+
+#### Retention Settings
+  
+A backup file available on the local server instead of on a remote repository can save time. Consider the following factors for any change to your retention values: frequency of system changes, level of risk, database size, available disk space, and (if implemented) the reliability and availability of remote backups.
+
+
+### How to Use an Automated Backup File to Roll Back the System
+Manually download and installation of Docker images is done in five steps. Note that you will need an internet-connected workstation to complete the first three steps.
+
+![Manually download and installation of Docker images](img/bck-1-manual-install-docker.png)
+
+1. Stop the application service.
+    ```
+    sudo service demisto stop
+    ```
+
+2. Delete the contents of the database directory (default: **/var/lib/demisto/data/**).
+    ```
+    sudo rm -r /var/lib/demisto/data/*
+    ```
+
+3. Use a target backup file to refresh the system.
+
+     a. Copy the target backup file to the database directory.
+
+     b. Use **tar -xzf <backup-filename-.gzip>** to extract the backup.
+
+     c. Move all **demisto_XXXXX.db** files (not including **demisto.db**) to the **/var/lib/demisto/partitionsData** folder.
+
+    ![Use a target backup file to refresh the system](img/bck-1-3-manual-extract-backup.png)
+
+
+4. Start the application service.
+    ```
+    sudo service demisto start
+    ```
+
+5. Log in to the web interface and validate the rollback.
+
+
+## Live Backup Solution
+The Live Backup solution runs two Cortex XSOAR server instances simultaneously: an active primary server and a backup server. Each server maintains a distinct IP address and hostname.
+
+#### Active primary server
+The primary server runs all automations and serves all users.
+
+#### Standby server
+The standby server receives ongoing system changes from the primary server, but is not available to users until you manually change its mode to active.
+
+#### Failover process
+The failover process is manual. After manual failover, any Cortex XSOAR engines will automatically start to connect to the new active server.
+
+**Note**: As of publication, high-availability features that are not supported include multiple primary and standby servers, active-active configuration, peer monitoring, and use of virtual IP addresses (VIPs).
+
+
+## How to Deploy Live Backup: Configure the Primary Server
+The following steps summarize the process for setting up a Live Backup solution. 
+
+![How to Deploy Live Backup: Configure the Primary Server](img/bck-2-deploy-live-backup.png)
+
+1. Add a custom server configuration.
+
+    ![Add server configuration key ui.livebackup](img/bck-2-1-set-ui-livebackup.png)
+    Go to **Settings > About > Troubleshooting > Server Configuration**, add the server-configuration key **ui.livebackup**, set the value to **True**, and then click **Save**. This configuration enables the display of Live Backup options in the web interface.
+
+2. Set Live Backup to ON. 
+
+    Go to **Settings > Advanced > Backups** and click the **OFF/ON** toggle to set it to **ON**.
+
+3. Configure the Live Backup settings.
+
+    ![Add required server information](img/bck-2-2-set-livebackup-server.png)
+    Add required server information and then click **Save Live Backup configuration**.
+
+4. Log in to the Linux command shell and stop the application service.
+    ```
+    sudo service demisto stop
+    ```
+
+5. Use the **tar** command to back up the following folders and ensure all files and folders retain **demisto:demisto** ownership.
+    ```
+    /var/lib/demisto/data
+
+    /var/lib/demisto/artifacts
+
+    /var/lib/demisto/attachments
+
+    /var/lib/demisto/systemTools
+
+    /var/lib/demisto/d2_server.key
+
+    /usr/local/demisto/cert*
+
+    /usr/local/demisto/demisto.lic
+    ```
+
+    This command creates a tarball named **xsoarBackup.tgz**:
+
+    ```
+    sudo tar --ignore-failed-read -pczf xsoarBackup.tgz /var/lib/demisto/data /var/lib/demisto/artifacts /var/lib/demisto/attachments /var/lib/demisto/systemTools /var/lib/demisto/d2_server.key /usr/local/demisto/cert* /usr/local/demisto/demisto.lic
+    ```
+
+6. Copy the tarball to the Live Backup server.
+    
+    Example use of the **scp** command:
+
+    ```
+    scp xsoarBackup.tgz <username>@<live-backup-IP-or-hostname>:<target-directory>
+    ```
+
+
+## How to Deploy Live Backup: Configure the Live Backup Server
+The following steps summarize the process for setting up a Live Backup solution on the target Live Backup (standby) server. 
+
+![How to Deploy Live Backup: Configure the Live Backup Server](img/bck-3-configure-live-backup.png)
+
+1. Install Cortex XSOAR server software.
+    ```
+    sudo sh ./demistoserver-xxxx.sh -- -dr -do-not-start-server
+    ```
+    
+    The “**--**” option passes the subsequent options to the binary installer. 
+
+    The disaster recovery option “**-dr**” enables Live Backup mode. 
+
+    The “**-do-not-start-server**” option causes the installer to finish without starting the application service.
+
+2. Verify connectivity from the primary server to the standby server.
+   
+    Use the following command ("**curl**" instead of "**wget**" is intentional):
+    ```
+    curl -k https://<IP-addr-or-DNS-name>
+    ```
+
+3. Extract the backup tarball.
+   
+    Use the command to preserve file permissions and ownership: 
+
+    ```
+    sudo tar -C / -xzpvf xsoarBackup.tgz
+    ```
+
+
+4. Start the application service.
+    ```
+    sudo service demisto start
+    ```
+
+5. Go to the primary server and start the application service.
+    ```
+    sudo service demisto start
+    ```
+
+## Use of Live Backup Failover Capability
+Live Backup supports failover scenarios that may result from platform failure (hardware or software), infrastructure outage, or environmental disaster. The image shows how a standby server splash page is displayed after you log in to the standby server.
+
+![The image shows how a standby server splash page](img/bck-4-failover-live-backup.png)
+
+Use the product Admin Guide and information available on the support site for up-to-date and detailed instructions for the following tasks:
+
+- Live Backup failover testing
+- Perform failover with a recoverable active (primary) server
+- Perform failover with an unrecoverable active (primary) server
+
+# Official Documentation
+
+Use the latest
+- [Cortex XSOAR Admin Guide](https://docs.paloaltonetworks.com/cortex/cortex-xsoar/6-0/cortex-xsoar-admin.html) 
+
+and information available on the 
+
+- [Demisto support site](https://support.demisto.com/hc/en-us) 
+ 
+for up-to-date and detailed instructions for all available administrative tasks.
