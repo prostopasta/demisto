@@ -10,7 +10,7 @@ Some useful but not well documented stuff on Demisto aka Cortex XSOAR by Palo Al
 You should be aware of two primary directory locations.
 ### /var/lib/demisto/
 
-![The /var/lib/demisto/ directory](.\img\var-lib-demisto.png)
+![The /var/lib/demisto/ directory](/img/var-lib-demisto.png)
 
 The **/var/lib/demisto/** directory contains system files and subdirectories that are variable, or subject to change. This 
 directory is the root directory for artifacts, attachments, backups, the incidents database, downloads, jobs, version 
@@ -18,7 +18,7 @@ control data, and other dynamic data.
 
 ### /usr/local/demisto/
 
-![The /usr/local/demisto/ directory](.\img\usr-local-demisto.png)
+![The /usr/local/demisto/ directory](/img/usr-local-demisto.png)
 
 The **/usr/local/demisto/** directory contains the application-server binary file, the private and public keys for the web 
 interface, the license file, baseline platform content (resource files), and other distributed support files for running 
@@ -27,7 +27,7 @@ the web interface and other core functions.
 ## Cortex XSOAR Directory Locations for Key Assets
 The following table lists several key assets and their directory locations for a standard Cortex XSOAR installation.
 
-![Cortex XSOAR Directory Locations for Key Assets](.\img\directories.png)
+![Cortex XSOAR Directory Locations for Key Assets](/img/directories.png)
 
 ## Health Monitoring
 To display high-level metrics for disk, CPU, and memory usage, navigate to the **Home [Dashboards] > System Health** page. 
@@ -63,7 +63,7 @@ errors and failures.
 ## Log File Downloads
 Perform the following steps to generate and download log files. 
 
-![Log File Downloads](.\img\logs-download.png)
+![Log File Downloads](/img/logs-download.png)
 
 ### 1. Click Download logs.
 Go to the **Settings > Troubleshooting** page and click **Download logs**. After you click **Download logs**, the 
@@ -98,10 +98,10 @@ at the time the log bundle is requested.
 Some files in the log bundle are copies of log files that the system writes to continuously over time or for a period of 
 time, such as during system boot or during an update.
 
-![Running Log Files](.\img\running-logs.png)
+![Running Log Files](/img/running-logs.png)
 
 ### Status Output Logs
 Some files in the log bundle are copies of log files that the system writes to continuously over time or for a period of 
 time, such as during system boot or during an update.
 
-![Status Output Logs](.\img\status-output-logs.png)
+![Status Output Logs](/img/status-output-logs.png)
