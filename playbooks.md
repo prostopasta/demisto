@@ -1,9 +1,10 @@
 # Demisto - Playbooks examples
-Some useful playbooks for Demisto aka Cortex XSOAR by Palo Alto Networks. Link to official documentation - https://xsoar.pan.dev/docs/reference/index#playbooks
+Some useful playbooks for Demisto aka Cortex XSOAR by Palo Alto Networks. 
+- [Link to official documentation](https://xsoar.pan.dev/docs/reference/index#playbooks)
+
 
 - [Demisto - Playbooks examples](#demisto---playbooks-examples)
   - [Yoda Speak](#yoda-speak)
-
 
 ## Yoda Speak
 ![Yoda pics](/playbooks/yoda/yoda.png)
